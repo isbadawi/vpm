@@ -1,0 +1,77 @@
+#!/bin/bash
+set -e
+
+BUNDLE_DIR=$HOME/.vim/bundle
+
+function vpm_plugin_exists {
+  [ -d "$BUNDLE_DIR/$1" ]
+}
+
+function vpm_plugin_git {
+  git -C "$BUNDLE_DIR/$1" "${@:2}"
+}
+
+function vpm_plugin_is_outdated {
+  vpm_plugin_git $1 remote update > /dev/null
+  [ -n "$(vpm_plugin_git $1 log HEAD..origin/master --oneline)" ]
+}
+
+function vpm_ls {
+  ls -G $BUNDLE_DIR
+}
+
+function vpm_install {
+  echo "Installing $1..."
+  if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+    url="https://github.com/$1"
+  else
+    url=$1
+  fi
+  (cd $BUNDLE_DIR && git clone $url)
+}
+
+function vpm_update {
+  if [ $# -eq 1 ]; then
+    if vpm_plugin_exists "$1"; then
+      echo "Updating $1..."
+      vpm_plugin_git $1 pull
+    else
+      echo "No such plugin: $1"
+    fi
+  else
+    for plugin in $(vpm_ls); do
+      vpm_update $plugin
+    done
+  fi
+}
+
+function vpm_uninstall {
+  if vpm_plugin_exists "$1"; then
+    echo "Uninstalling $1..."
+    rm -rf "$BUNDLE_DIR/$1"
+  else
+    echo "No such plugin: $1"
+  fi
+}
+
+function vpm_outdated {
+  for plugin in $(vpm_ls); do
+    if vpm_plugin_is_outdated $plugin; then
+      echo $plugin
+    fi
+  done
+}
+
+function main {
+  if [[ $1 =~ ls|install|update|uninstall|outdated ]]; then
+    eval "vpm_$1 ${@:2}"
+  else
+    echo "usage: vpm ls
+       vpm install user/repo
+       vpm update [plugin]
+       vpm uninstall plugin
+       vpm outdated"
+  fi
+}
+
+main "$@"
