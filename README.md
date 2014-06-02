@@ -11,6 +11,7 @@ a GitHub user/repo as a shorthand (e.g. `vpm install tpope/vim-fugitive`).
 * `vpm update plugin` (e.g. `vpm update vim-fugitive`) updates a plugin.
 * `vpm update` without specifying a plugin updates all installed plugins.
 * `vpm outdated` lists plugins that can be updated.
+* `vpm uninstall plugin` uninstalls a plugin.
 
 ### Dependencies
 
