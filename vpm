@@ -8,7 +8,7 @@ function vpm_plugin_exists {
 }
 
 function vpm_plugin_git {
-  git -C "$BUNDLE_DIR/$1" "${@:2}"
+  git --git-dir="$BUNDLE_DIR/$1/.git" --work-tree="$BUNDLE_DIR/$1" "${@:2}"
 }
 
 function vpm_plugin_is_outdated {
