@@ -6,12 +6,14 @@ managed by [pathogen][].
 You can use it like this:
 
 * `vpm ls` prints a list of installed plugins.
-* `vpm install url` installs a plugin from the given url. You can also a pass
-a GitHub user/repo as a shorthand (e.g. `vpm install tpope/vim-fugitive`).
+* `vpm install url` installs a plugin from the given url. You can also a pass a
+  GitHub user/repo as a shorthand (e.g. `vpm install tpope/vim-fugitive`).
 * `vpm update plugin` (e.g. `vpm update vim-fugitive`) updates a plugin.
 * `vpm update` without specifying a plugin updates all installed plugins.
 * `vpm outdated` lists plugins that can be updated.
 * `vpm uninstall plugin` uninstalls a plugin.
+* `vpm export` writes a shell script to stdout with vpm commands to install the
+  currently installed plugins.
 
 ### Dealing with non-git plugins
 

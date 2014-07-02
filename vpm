@@ -68,15 +68,23 @@ function vpm_outdated {
   done
 }
 
+function vpm_export {
+  echo "#!/bin/bash"
+  for plugin in $(vpm_ls); do
+    echo "vpm install $(vpm_plugin_git $plugin config --get remote.origin.url)"
+  done
+}
+
 function main {
-  if [[ $1 =~ ls|install|update|uninstall|outdated ]]; then
+  if [[ $1 =~ ls|install|update|uninstall|outdated|export ]]; then
     eval "vpm_$1 ${@:2}"
   else
     echo "usage: vpm ls
        vpm install user/repo
        vpm update [plugin]
        vpm uninstall plugin
-       vpm outdated"
+       vpm outdated
+       vpm export"
   fi
 }
 
