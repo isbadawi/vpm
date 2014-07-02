@@ -21,13 +21,19 @@ function vpm_ls {
 }
 
 function vpm_install {
-  echo "Installing $1..."
-  if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
-    url="git@github.com:$1"
-  else
-    url=$1
+  plugin_name="$(basename $1)"
+  plugin_name="${plugin_name%.*}"
+  if vpm_plugin_exists "$plugin_name"; then
+    echo "Plugin already installed: $plugin_name"
+    return
   fi
-  (cd $BUNDLE_DIR && git clone $url)
+  echo "Installing $plugin_name..."
+  if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+    plugin_url="git@github.com:$1"
+  else
+    plugin_url=$1
+  fi
+  (cd $BUNDLE_DIR && git clone $plugin_url)
 }
 
 function vpm_update {
