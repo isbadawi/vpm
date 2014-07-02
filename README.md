@@ -25,7 +25,7 @@ or clone this repo and create a symlink.
 
 Vundle has more features, is integrated with vim, has been around longer, is
 actively maintained, etc. By contrast, this is a small shell script I largely
-threw together is an afternoon, and I am the only user so far (let me know when
+threw together in an afternoon, and I am the only user so far (let me know when
 this isn't true anymore!).
 
 My initial motivation for writing this was that I didn't want to have to
