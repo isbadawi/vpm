@@ -23,7 +23,7 @@ function vpm_ls {
 function vpm_install {
   echo "Installing $1..."
   if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
-    url="https://github.com/$1"
+    url="git@github.com:$1"
   else
     url=$1
   fi
