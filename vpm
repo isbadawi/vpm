@@ -28,7 +28,7 @@ function vpm_install {
     return
   fi
   echo "Installing $plugin_name..."
-  if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+  if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_\.-]+$ ]]; then
     plugin_url="git@github.com:$1"
   else
     plugin_url=$1
