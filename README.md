@@ -11,7 +11,7 @@ You can use it like this:
 * `vpm update plugin` (e.g. `vpm update vim-fugitive`) updates a plugin.
 * `vpm update` without specifying a plugin updates all installed plugins.
 * `vpm outdated` lists plugins that can be updated.
-* `vpm uninstall plugin` uninstalls a plugin.
+* `vpm uninstall plugin` uninstalls one or more plugins.
 * `vpm export` writes a shell script to stdout with vpm commands to install the
   currently installed plugins.
 
