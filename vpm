@@ -82,7 +82,7 @@ function vpm_export {
 }
 
 function main {
-  if [[ $1 =~ ls|install|update|uninstall|outdated|export ]]; then
+  if [[ $1 =~ ^(ls|install|update|uninstall|outdated|export)$ ]]; then
     eval "vpm_$1 ${@:2}"
   else
     echo "usage: vpm ls
