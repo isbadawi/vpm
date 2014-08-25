@@ -52,7 +52,7 @@ function vpm_install {
   for spec in "$@"; do
     local plugin_name="$(basename $spec | sed -e 's/.git$//')"
     if vpm_plugin_exists "$plugin_name"; then
-      echo "Plugin already installed: $plugin_name"
+      echo 1>&2 "Plugin already installed: $plugin_name"
       return
     fi
     echo "Installing $plugin_name..."
@@ -66,64 +66,58 @@ function vpm_install {
   done
 }
 
-function vpm_update {
+function vpm_existing_plugins {
   local plugins="$@"
   if [ $# -eq 0 ]; then
     plugins="$(vpm ls)"
   fi
   for plugin in $plugins; do
     if vpm_plugin_exists "$plugin"; then
-      vpm_plugin_fetch_update "$plugin"
-      if vpm_plugin_is_outdated "$plugin"; then
-        echo $plugin
-      fi
+      echo $plugin
     else
-      echo "No such plugin: $plugin"
+      echo 1>&2 "No such plugin: $plugin"
+      exit 1
+    fi
+  done
+}
+
+function vpm_outdated_plugins {
+  for plugin in $(vpm_existing_plugins "$@"); do
+    if vpm_plugin_is_outdated "$plugin"; then
+      echo $plugin
+    fi
+  done
+}
+
+function vpm_update {
+  for plugin in $(vpm_existing_plugins "$@"); do
+    vpm_plugin_fetch_update "$plugin"
+    if vpm_plugin_is_outdated "$plugin"; then
+      echo $plugin
     fi
   done
 }
 
 function vpm_upgrade {
-  local plugins="$@"
-  if [ $# -eq 0 ]; then
-    plugins="$(vpm ls)"
-  fi
-  for plugin in $plugins; do
-    if vpm_plugin_exists "$plugin"; then
-      if vpm_plugin_is_outdated "$plugin"; then
-        vpm_plugin_git $plugin merge --ff-only > /dev/null
-        echo "Upgraded $plugin to $(vpm_plugin_version $plugin)."
-      fi
-    else
-      echo "No such plugin: $plugin"
-    fi
+  for plugin in $(vpm_outdated_plugins "$@"); do
+    vpm_plugin_git $plugin merge --ff-only > /dev/null
+    echo "Upgraded $plugin to $(vpm_plugin_version $plugin)."
   done
 }
 
 function vpm_uninstall {
-  for plugin in "$@"; do
-    if vpm_plugin_exists "$plugin"; then
-      echo "Uninstalling $plugin..."
-      rm -rf "$(vpm_plugin_dir $plugin)"
-    else
-      echo "No such plugin: $plugin"
-    fi
+  if [ $# -eq 0 ]; then
+    return
+  fi
+  for plugin in $(vpm_existing_plugins "$@"); do
+    echo "Uninstalling $plugin..."
+    rm -rf "$(vpm_plugin_dir $plugin)"
   done
 }
 
 function vpm_incoming {
-  local plugins="$@"
-  if [ $# -eq 0 ]; then
-    plugins="$(vpm ls)"
-  fi
-  for plugin in $plugins; do
-    if vpm_plugin_exists "$plugin"; then
-      if vpm_plugin_is_outdated "$plugin"; then
-        vpm_plugin_whatchanged "$plugin"
-      fi
-    else
-      echo "No such plugin: $plugin"
-    fi
+  for plugin in $(vpm_outdated_plugins "$@"); do
+    vpm_plugin_whatchanged "$plugin"
   done
 }
 
