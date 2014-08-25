@@ -14,8 +14,15 @@ function vpm_plugin_git {
   git --git-dir="$plugin_dir/.git" --work-tree="$plugin_dir" "${@:2}"
 }
 
-function vpm_plugin_is_outdated {
+function vpm_plugin_fetch_update {
   vpm_plugin_git $1 remote update > /dev/null
+}
+
+function vpm_plugin_version {
+  vpm_plugin_git $1 rev-parse --short HEAD
+}
+
+function vpm_plugin_is_outdated {
   [ -n "$(vpm_plugin_git $1 log HEAD..origin/master --oneline)" ]
 }
 
@@ -24,10 +31,10 @@ function vpm_plugin_url {
 }
 
 function vpm_plugin_whatchanged {
-  local old_head=$(vpm_plugin_git $1 rev-parse --short @{1})
-  local new_head=$(vpm_plugin_git $1 rev-parse --short HEAD)
-  echo "Updated $1 from $old_head to $new_head:"
-  vpm_plugin_git $1 log --reverse --oneline @{1}..HEAD
+  local old_head=$(vpm_plugin_git $1 rev-parse --short HEAD)
+  local new_head=$(vpm_plugin_git $1 rev-parse --short origin/master)
+  echo "Can upgrade $1 from $old_head to $new_head:"
+  vpm_plugin_git $1 log --reverse --oneline $old_head...$new_head
 
   local url=$(vpm_plugin_url $1)
   if [[ $url == *github.com* ]]; then
@@ -66,10 +73,26 @@ function vpm_update {
   fi
   for plugin in $plugins; do
     if vpm_plugin_exists "$plugin"; then
+      vpm_plugin_fetch_update "$plugin"
       if vpm_plugin_is_outdated "$plugin"; then
-        # vpm_plugin_is_outdated fetches as a side effect, just need to merge
+        echo $plugin
+      fi
+    else
+      echo "No such plugin: $plugin"
+    fi
+  done
+}
+
+function vpm_upgrade {
+  local plugins="$@"
+  if [ $# -eq 0 ]; then
+    plugins="$(vpm ls)"
+  fi
+  for plugin in $plugins; do
+    if vpm_plugin_exists "$plugin"; then
+      if vpm_plugin_is_outdated "$plugin"; then
         vpm_plugin_git $plugin merge --ff-only > /dev/null
-        vpm_plugin_whatchanged $plugin
+        echo "Upgraded $plugin to $(vpm_plugin_version $plugin)."
       fi
     else
       echo "No such plugin: $plugin"
@@ -88,10 +111,18 @@ function vpm_uninstall {
   done
 }
 
-function vpm_outdated {
-  for plugin in $(vpm_ls); do
-    if vpm_plugin_is_outdated $plugin; then
-      echo $plugin
+function vpm_incoming {
+  local plugins="$@"
+  if [ $# -eq 0 ]; then
+    plugins="$(vpm ls)"
+  fi
+  for plugin in $plugins; do
+    if vpm_plugin_exists "$plugin"; then
+      if vpm_plugin_is_outdated "$plugin"; then
+        vpm_plugin_whatchanged "$plugin"
+      fi
+    else
+      echo "No such plugin: $plugin"
     fi
   done
 }
@@ -104,14 +135,15 @@ function vpm_export {
 }
 
 function main {
-  if [[ $1 =~ ^(ls|install|update|uninstall|outdated|export)$ ]]; then
+  if [[ $1 =~ ^(ls|install|uninstall|update|incoming|upgrade|export)$ ]]; then
     eval "vpm_$1 ${@:2}"
   else
     echo "usage: vpm ls
        vpm install user/repo
-       vpm update [plugin]
        vpm uninstall plugin
-       vpm outdated
+       vpm update [plugin]
+       vpm incoming [plugin]
+       vpm upgrade [plugin]
        vpm export"
   fi
 }
