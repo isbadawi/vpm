@@ -21,15 +21,15 @@ function vpm_plugin_url {
 }
 
 function vpm_plugin_whatchanged {
-  old_head=$(vpm_plugin_git $1 rev-parse --short @{1})
-  new_head=$(vpm_plugin_git $1 rev-parse --short HEAD)
+  local old_head=$(vpm_plugin_git $1 rev-parse --short @{1})
+  local new_head=$(vpm_plugin_git $1 rev-parse --short HEAD)
   echo "Updated $1 from $old_head to $new_head:"
   vpm_plugin_git $1 log --reverse --oneline @{1}..HEAD
 
-  url=$(vpm_plugin_url $1)
+  local url=$(vpm_plugin_url $1)
   if [[ $url == *github.com* ]]; then
-    repo=$(echo $url | sed -e 's/^.*github.com.//' | sed -e 's/.git$//')
-    compare_url="https://github.com/$repo/compare/$old_head...$new_head"
+    local repo=$(echo $url | sed -e 's/^.*github.com.//' | sed -e 's/.git$//')
+    local compare_url="https://github.com/$repo/compare/$old_head...$new_head"
     echo "View changes on GitHub: $compare_url"
   fi
 }
@@ -39,13 +39,13 @@ function vpm_ls {
 }
 
 function vpm_install {
-  plugin_name="$(basename $1)"
-  plugin_name="${plugin_name%.*}"
+  local plugin_name="$(basename $1 | sed -e 's/.git$//')"
   if vpm_plugin_exists "$plugin_name"; then
     echo "Plugin already installed: $plugin_name"
     return
   fi
   echo "Installing $plugin_name..."
+  local plugin_url
   if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_\.-]+$ ]]; then
     plugin_url="git@github.com:$1"
   else
