@@ -1,14 +1,17 @@
 #!/bin/bash
 set -e
 
-BUNDLE_DIR=$HOME/.vim/bundle
+function vpm_plugin_dir {
+  echo "$HOME/.vim/bundle/$1"
+}
 
 function vpm_plugin_exists {
-  [ -d "$BUNDLE_DIR/$1" ]
+  [ -d "$(vpm_plugin_dir $1)" ]
 }
 
 function vpm_plugin_git {
-  git --git-dir="$BUNDLE_DIR/$1/.git" --work-tree="$BUNDLE_DIR/$1" "${@:2}"
+  local plugin_dir=$(vpm_plugin_dir $1)
+  git --git-dir="$plugin_dir/.git" --work-tree="$plugin_dir" "${@:2}"
 }
 
 function vpm_plugin_is_outdated {
@@ -35,56 +38,54 @@ function vpm_plugin_whatchanged {
 }
 
 function vpm_ls {
-  ls -G $BUNDLE_DIR
+  ls -G $(vpm_plugin_dir)
 }
 
 function vpm_install {
-  local plugin_name="$(basename $1 | sed -e 's/.git$//')"
-  if vpm_plugin_exists "$plugin_name"; then
-    echo "Plugin already installed: $plugin_name"
-    return
-  fi
-  echo "Installing $plugin_name..."
-  local plugin_url
-  if [[ "$1" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_\.-]+$ ]]; then
-    plugin_url="git@github.com:$1"
-  else
-    plugin_url=$1
-  fi
-  (cd $BUNDLE_DIR && git clone $plugin_url)
+  for spec in "$@"; do
+    local plugin_name="$(basename $spec | sed -e 's/.git$//')"
+    if vpm_plugin_exists "$plugin_name"; then
+      echo "Plugin already installed: $plugin_name"
+      return
+    fi
+    echo "Installing $plugin_name..."
+    local plugin_url
+    if [[ "$spec" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_\.-]+$ ]]; then
+      plugin_url="git@github.com:$spec"
+    else
+      plugin_url=$spec
+    fi
+    git clone $plugin_url $(vpm_plugin_dir $plugin_name)
+  done
 }
 
 function vpm_update {
-  if [ $# -eq 1 ]; then
-    if vpm_plugin_exists "$1"; then
-      if vpm_plugin_is_outdated "$1"; then
+  local plugins="$@"
+  if [ $# -eq 0 ]; then
+    plugins="$(vpm ls)"
+  fi
+  for plugin in $plugins; do
+    if vpm_plugin_exists "$plugin"; then
+      if vpm_plugin_is_outdated "$plugin"; then
         # vpm_plugin_is_outdated fetches as a side effect, just need to merge
-        vpm_plugin_git $1 merge --ff-only > /dev/null
-        vpm_plugin_whatchanged $1
+        vpm_plugin_git $plugin merge --ff-only > /dev/null
+        vpm_plugin_whatchanged $plugin
       fi
     else
-      echo "No such plugin: $1"
+      echo "No such plugin: $plugin"
     fi
-  else
-    for plugin in $(vpm_ls); do
-      vpm_update $plugin
-    done
-  fi
+  done
 }
 
 function vpm_uninstall {
-  if [ $# -eq 1 ]; then
-    if vpm_plugin_exists "$1"; then
-      echo "Uninstalling $1..."
-      rm -rf "$BUNDLE_DIR/$1"
+  for plugin in "$@"; do
+    if vpm_plugin_exists "$plugin"; then
+      echo "Uninstalling $plugin..."
+      rm -rf "$(vpm_plugin_dir $plugin)"
     else
-      echo "No such plugin: $1"
+      echo "No such plugin: $plugin"
     fi
-  else
-    for plugin in $@; do
-      vpm_uninstall $plugin
-    done
-  fi
+  done
 }
 
 function vpm_outdated {
