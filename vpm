@@ -16,6 +16,24 @@ function vpm_plugin_is_outdated {
   [ -n "$(vpm_plugin_git $1 log HEAD..origin/master --oneline)" ]
 }
 
+function vpm_plugin_url {
+  vpm_plugin_git $1 config --get remote.origin.url
+}
+
+function vpm_plugin_whatchanged {
+  old_head=$(vpm_plugin_git $1 rev-parse --short @{1})
+  new_head=$(vpm_plugin_git $1 rev-parse --short HEAD)
+  echo "Updated $1 from $old_head to $new_head:"
+  vpm_plugin_git $1 log --reverse --oneline @{1}..HEAD
+
+  url=$(vpm_plugin_url $1)
+  if [[ $url == *github.com* ]]; then
+    repo=$(echo $url | sed -e 's/^.*github.com.//' | sed -e 's/.git$//')
+    compare_url="https://github.com/$repo/compare/$old_head...$new_head"
+    echo "View changes on GitHub: $compare_url"
+  fi
+}
+
 function vpm_ls {
   ls -G $BUNDLE_DIR
 }
@@ -39,8 +57,11 @@ function vpm_install {
 function vpm_update {
   if [ $# -eq 1 ]; then
     if vpm_plugin_exists "$1"; then
-      echo "Updating $1..."
-      vpm_plugin_git $1 pull
+      if vpm_plugin_is_outdated "$1"; then
+        # vpm_plugin_is_outdated fetches as a side effect, just need to merge
+        vpm_plugin_git $1 merge --ff-only > /dev/null
+        vpm_plugin_whatchanged $1
+      fi
     else
       echo "No such plugin: $1"
     fi
@@ -77,7 +98,7 @@ function vpm_outdated {
 function vpm_export {
   echo "#!/bin/bash"
   for plugin in $(vpm_ls); do
-    echo "vpm install $(vpm_plugin_git $plugin config --get remote.origin.url)"
+    echo "vpm install $(vpm_plugin_url $plugin)"
   done
 }
 
