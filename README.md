@@ -30,12 +30,6 @@ Some example sessions:
 ```
 $ vpm install tpope/vim-fugitive
 Installing vim-fugitive...
-Cloning into '$HOME/.vim/bundle/vim-fugitive'...
-remote: Counting objects: 1986, done.
-remote: Total 1986 (delta 0), reused 0 (delta 0)
-Receiving objects: 100% (1986/1986), 520.46 KiB | 0 bytes/s, done.
-Resolving deltas: 100% (714/714), done.
-Checking connectivity... done.
 ```
 
 ```
