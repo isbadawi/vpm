@@ -100,7 +100,7 @@ function vpm_update {
 
 function vpm_upgrade {
   for plugin in $(vpm_outdated_plugins "$@"); do
-    vpm_plugin_git $plugin merge --ff-only > /dev/null
+    vpm_plugin_git $plugin merge --ff-only origin/master > /dev/null
     echo "Upgraded $plugin to $(vpm_plugin_version $plugin)."
   done
 }
