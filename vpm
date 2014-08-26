@@ -15,7 +15,7 @@ function vpm_plugin_git {
 }
 
 function vpm_plugin_fetch_update {
-  vpm_plugin_git $1 remote update > /dev/null
+  vpm_plugin_git $1 fetch --quiet origin master
 }
 
 function vpm_plugin_version {
@@ -62,7 +62,7 @@ function vpm_install {
     else
       plugin_url=$spec
     fi
-    git clone $plugin_url $(vpm_plugin_dir $plugin_name)
+    git clone --quiet $plugin_url $(vpm_plugin_dir $plugin_name)
   done
 }
 
@@ -100,7 +100,7 @@ function vpm_update {
 
 function vpm_upgrade {
   for plugin in $(vpm_outdated_plugins "$@"); do
-    vpm_plugin_git $plugin merge --ff-only origin/master > /dev/null
+    vpm_plugin_git $plugin merge --ff-only --quiet origin/master
     echo "Upgraded $plugin to $(vpm_plugin_version $plugin)."
   done
 }
