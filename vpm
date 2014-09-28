@@ -11,7 +11,7 @@ function vpm_plugin_exists {
 
 function vpm_plugin_git {
   local plugin_dir=$(vpm_plugin_dir $1)
-  git --git-dir="$plugin_dir/.git" --work-tree="$plugin_dir" "${@:2}"
+  git --no-pager --git-dir="$plugin_dir/.git" --work-tree="$plugin_dir" "${@:2}"
 }
 
 function vpm_plugin_fetch_update {
