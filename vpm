@@ -58,7 +58,7 @@ function vpm_install {
     echo "Installing $plugin_name..."
     local plugin_url
     if [[ "$spec" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_\.-]+$ ]]; then
-      plugin_url="git@github.com:$spec"
+      plugin_url="https://github.com/$spec"
     else
       plugin_url=$spec
     fi
